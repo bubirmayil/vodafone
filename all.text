@@ -1,0 +1,233 @@
+----------------------------------------------MONGO---------------------------------------------------------
+
+Imagine a mongo collection which has gsm,password and insert_date columns. gsm can be null or equals a number.insert_date and password are default exists.
+
+
+
+Write a mongo query for getting records insert_date which grater than April 1 for exists gsms.//Please send query.
+
+
+
+mongo part
+db.inventory.insertMany([
+   { gsm: "5422322323", password: 123456, insert_date: "2022-03-05T14:16:30.228+00:00"},
+   { gsm: null, password: 123456, insert_date: "2022-04-05T14:16:30.228+00:00"},
+   { gsm: "5422322323", password: 123456, insert_date: "2022-04-03T03:16:30.228+00:00"}
+]
+)
+
+db.inventory.find({insert_date: {"$gte": "2022-04-01T00:00:00.00+00:00"}, gsm: { $ne: null }})
+
+{ $exists: true, $ne: null }
+{"IMAGE URL":{$exists:true}
+
+gsm:5422322323
+
+password:123456
+
+insert_date:2022-03-11T14:16:30.228+00:00
+
+
+
+
+
+----------------------------------------------ORACLE--------------------------------------------------------
+
+
+
+
+
+Imagine an oracle table which has id and order_id columns. Table have same order_id with different id's.
+
+
+
+Example;
+
+
+
+      ORDER_ID                ID
+
+623cdc7ff2f3603b06a283ff    8112686  
+
+623cdc7ff2f3603b06a283ff    8116869
+
+623cdc7ff2f3603b06a28400    8117671
+
+623ce4068c47be1532c4c53c    8118392
+
+
+
+
+
+Write a select for group same order_ids, and show in one line which seperated with comma; //Please send sql.
+
+
+
+Select result should be like that;
+
+
+
+ORDER_ID                    ID
+
+623cdc7ff2f3603b06a283ff    8112686 , 8116869
+
+623cdc7ff2f3603b06a28400    8117671
+
+623ce4068c47be1532c4c53c    8118392
+
+
+
+CREATE TABLE vodafone  
+( ORDER_ID varchar(24) NOT NULL,  
+  ID number(10) NOT NULL);
+
+insert into vodafone VALUES ('623cdc7ff2f3603b06a283ff', 8116869)
+insert into vodafone VALUES ('623cdc7ff2f3603b06a283ff', 8116869)
+insert into vodafone VALUES ('623cdc7ff2f3603b06a28400', 8117671)
+insert into vodafone VALUES ('623cdc7ff2f3603b06a28400', 8117671)
+insert into vodafone VALUES ('623ce4068c47be1532c4c53c', 8118392)
+insert into vodafone VALUES ('623cdc7ff2f3603b06a283ff', 8112686)
+insert into vodafone VALUES ('623cdc7ff2f3603b06a283ff', 8112686)
+
+select * from vodafone
+
+SELECT
+    ORDER_ID,
+    LISTAGG(
+        ID,
+        ','
+    ) WITHIN GROUP(
+    ORDER BY
+        ORDER_ID
+    ) AS IDS
+FROM
+    vodafone
+GROUP BY
+    ORDER_ID
+ORDER BY
+    ORDER_ID;
+    
+
+ORDER_ID	IDS
+623cdc7ff2f3603b06a283ff	8112686,8112686,8116869,8116869
+623cdc7ff2f3603b06a28400	8117671,8117671
+623ce4068c47be1532c4c53c	8118392
+
+----------------------------------------------SHELL SCRIPTING----------------------------------------------
+
+
+
+
+
+1-Write a shell script which write "Hello world" for every 10 seconds into a temp file (hello.txt) //Please send sh.
+
+2-Run sh as a daemon process. //Please send command.
+
+3-Write another shell script to check the count of records in hello.txt, if total count is equal 10 then kill the first sh, delete the temp file and run first sh again.//Please send sh.
+
+4-Second sh should be proper for scheduled in crontab.
+
+cat <<EOF > /tmp/first.sh
+while :; do
+    sleep 10
+    echo "Hello world" >> /tmp/hello.txt
+done
+EOF
+
+nohup bash /tmp/first.sh &
+
+cat <<EOF > /tmp/second.sh
+set -x
+count=$(cat /tmp/hello.txt | wc -l)
+appid=$(ps -A -o pid,cmd|grep first.sh | grep -v grep |head -n 1 | awk '{print $1}')
+
+if [ $count -gt 10 ]
+then
+kill -9 $appid
+echo "" > /tmp/hello.txt
+nohup bash /tmp/first.sh &
+fi
+EOF
+
+cat <<EOF > /etc/cron.d/checker
+*/1 * * * * root /tmp/second.sh
+EOF
+
+----------------------------------------------DEVOPS-------------------------------------------------------
+
+
+
+Build a simple Springboot "Hello World" project with kubernetes and ingress. 
+
+- Open the project to internet and please share the url.
+- Create and push everything to GitHub repository //Please share the repository link.
+- Short explanation about what/why you did
+- Use Jenkins for all CI/CD part
+
+pipeline {
+environment {
+registryCredential = "docker"
+}
+agent any
+stages {
+stage(‘Build’) {
+    steps{
+    script {
+        sh 'mvn clean install'
+    }
+    }
+}
+stage(‘Load’) {
+    steps{
+    script {
+        app = docker.build("cloud007/simple-spring")
+    }
+    }
+}
+    stage(‘Deploy’) {
+    steps{
+    script {
+        docker.withRegistry( "https://registry.hub.docker.com", registryCredential ) {
+        // dockerImage.push()
+        app.push("latest")
+        }
+    }
+    }
+}
+stage('Deploy to ACS'){
+    steps{
+        withCredentials([azureServicePrincipal('dbb6d63b-41ab-4e71-b9ed-32b3be06eeb8')]) {
+        sh 'echo "logging in" '
+        sh 'az login --service-principal -u **************************** -p ********************************* -t **********************************’
+        sh 'az account set -s ****************************'
+        sh 'az aks get-credentials --resource-group ilink --name    mycluster'
+        sh 'kubectl apply -f sample.yaml'
+    }
+}
+}
+}
+}
+
+
+sample.yml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: spring-helloworld
+spec:
+    replicas: 1
+    selector:
+    matchLabels:
+        app: spring-helloworld
+    template:
+    metadata:
+        labels:
+        app: spring-helloworld
+    spec:
+        containers:
+        - name: spring-helloworld
+        image: cloud007/simple-spring:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
