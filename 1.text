@@ -1,0 +1,34 @@
+CREATE TABLE vodafone  
+( ORDER_ID varchar(24) NOT NULL,  
+  ID number(10) NOT NULL);
+
+insert into vodafone VALUES ('623cdc7ff2f3603b06a283ff', 8116869)
+insert into vodafone VALUES ('623cdc7ff2f3603b06a283ff', 8116869)
+insert into vodafone VALUES ('623cdc7ff2f3603b06a28400', 8117671)
+insert into vodafone VALUES ('623cdc7ff2f3603b06a28400', 8117671)
+insert into vodafone VALUES ('623ce4068c47be1532c4c53c', 8118392)
+insert into vodafone VALUES ('623cdc7ff2f3603b06a283ff', 8112686)
+insert into vodafone VALUES ('623cdc7ff2f3603b06a283ff', 8112686)
+
+select * from vodafone
+
+SELECT
+    ORDER_ID,
+    LISTAGG(
+        ID,
+        ','
+    ) WITHIN GROUP(
+    ORDER BY
+        ORDER_ID
+    ) AS IDS
+FROM
+    vodafone
+GROUP BY
+    ORDER_ID
+ORDER BY
+    ORDER_ID;
+    
+ORDER_ID	IDS
+623cdc7ff2f3603b06a283ff	8112686,8112686,8116869,8116869
+623cdc7ff2f3603b06a28400	8117671,8117671
+623ce4068c47be1532c4c53c	8118392
